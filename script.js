@@ -1,3 +1,19 @@
+// 兵科カテゴリを開閉
+function toggleClassCategory(headerElement) {
+  debugLog('兵科カテゴリ開閉');
+  
+  const classCategoryElement = headerElement.parentElement;
+  const isCollapsed = classCategoryElement.classList.contains('collapsed');
+  
+  if (isCollapsed) {
+    // 開く
+    classCategoryElement.classList.remove('collapsed');
+  } else {
+    // 閉じる
+    classCategoryElement.classList.add('collapsed');
+  }
+}
+
 // アコーディオンでカテゴリを開閉
 function toggleCategory(headerElement) {
   debugLog('カテゴリ開閉');
@@ -16,6 +32,9 @@ function toggleCategory(headerElement) {
 
 // 全カテゴリを開く
 function expandAllCategories() {
+  document.querySelectorAll('.class-category').forEach(classCategory => {
+    classCategory.classList.remove('collapsed');
+  });
   document.querySelectorAll('.weapon-category').forEach(category => {
     category.classList.remove('collapsed');
   });
@@ -24,6 +43,9 @@ function expandAllCategories() {
 
 // 全カテゴリを閉じる
 function collapseAllCategories() {
+  document.querySelectorAll('.class-category').forEach(classCategory => {
+    classCategory.classList.add('collapsed');
+  });
   document.querySelectorAll('.weapon-category').forEach(category => {
     category.classList.add('collapsed');
   });
@@ -200,19 +222,29 @@ function renderWeapons() {
     const classData = weaponData[classKey];
     if (!classData || !classData.categories) return;
 
+    // 兵科の大カテゴリヘッダー
+    htmlContent += `
+      <div class="class-category">
+        <div class="class-header" onclick="toggleClassCategory(this)">
+          <span class="class-title">${classData.name}</span>
+          <span class="class-arrow">▼</span>
+        </div>
+        <div class="class-content">
+    `;
+
     Object.keys(classData.categories).forEach((categoryKey) => {
       const weapons = classData.categories[categoryKey];
       if (!Array.isArray(weapons)) return;
 
-      // カテゴリヘッダー
+      // 武器カテゴリヘッダー（小カテゴリ）
       htmlContent += `
-                <div class="weapon-category">
-                    <div class="category-header" onclick="toggleCategory(this)">
-                        <span class="category-title">${classData.name} - ${categoryKey}</span>
-                        <span class="category-arrow">▼</span>
-                    </div>
-                    <div class="weapon-grid">
-            `;
+        <div class="weapon-category">
+          <div class="category-header" onclick="toggleCategory(this)">
+            <span class="category-title">${categoryKey}</span>
+            <span class="category-arrow">▼</span>
+          </div>
+          <div class="weapon-grid">
+      `;
 
       // 武器アイテム
       weapons.forEach((weapon) => {
@@ -230,19 +262,25 @@ function renderWeapons() {
         if (isChecked) checkedCount++;
 
         htmlContent += `
-                    <div class="weapon-item ${isChecked ? "checked" : ""}" 
-                         onclick="toggleWeapon('${weaponId}', this)"
-                         data-weapon-id="${weaponId}">
-                        <div class="weapon-name">${weaponName} <span class="weapon-level">Lv${weaponLevel}</span></div>
-                    </div>
-                `;
+          <div class="weapon-item ${isChecked ? "checked" : ""}" 
+               onclick="toggleWeapon('${weaponId}', this)"
+               data-weapon-id="${weaponId}">
+            <div class="weapon-name">${weaponName} <span class="weapon-level">Lv${weaponLevel}</span></div>
+          </div>
+        `;
       });
 
       htmlContent += `
-                    </div>
-                </div>
-            `;
+          </div>
+        </div>
+      `;
     });
+
+    // 兵科カテゴリの終了
+    htmlContent += `
+        </div>
+      </div>
+    `;
   });
 
   if (htmlContent === "") {
@@ -515,7 +553,8 @@ window.debugEDF = {
   initialize,
   expandAllCategories,
   collapseAllCategories,
-  toggleCategory
+  toggleCategory,
+  toggleClassCategory
 };
 
 // トップに戻るボタンの機能
