@@ -1,3 +1,35 @@
+// アコーディオンでカテゴリを開閉
+function toggleCategory(headerElement) {
+  debugLog('カテゴリ開閉');
+  
+  const categoryElement = headerElement.parentElement;
+  const isCollapsed = categoryElement.classList.contains('collapsed');
+  
+  if (isCollapsed) {
+    // 開く
+    categoryElement.classList.remove('collapsed');
+  } else {
+    // 閉じる
+    categoryElement.classList.add('collapsed');
+  }
+}
+
+// 全カテゴリを開く
+function expandAllCategories() {
+  document.querySelectorAll('.weapon-category').forEach(category => {
+    category.classList.remove('collapsed');
+  });
+  debugLog('全カテゴリを展開');
+}
+
+// 全カテゴリを閉じる
+function collapseAllCategories() {
+  document.querySelectorAll('.weapon-category').forEach(category => {
+    category.classList.add('collapsed');
+  });
+  debugLog('全カテゴリを折りたたみ');
+}
+
 // 武器データを格納する変数
 let weaponData = {};
 let currentClass = "all";
@@ -175,7 +207,10 @@ function renderWeapons() {
       // カテゴリヘッダー
       htmlContent += `
                 <div class="weapon-category">
-                    <div class="category-header">${classData.name} - ${categoryKey}</div>
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <span class="category-title">${classData.name} - ${categoryKey}</span>
+                        <span class="category-arrow">▼</span>
+                    </div>
                     <div class="weapon-grid">
             `;
 
@@ -478,6 +513,9 @@ window.debugEDF = {
   checkedWeapons: () => checkedWeapons,
   renderWeapons,
   initialize,
+  expandAllCategories,
+  collapseAllCategories,
+  toggleCategory
 };
 
 // トップに戻るボタンの機能

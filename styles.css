@@ -142,6 +142,38 @@ body {
   box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
 }
 
+.accordion-controls {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.accordion-btn {
+  background: rgba(0, 40, 40, 0.6);
+  border: 1px solid #00ff88;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.accordion-btn:hover {
+  background: rgba(0, 60, 60, 0.8);
+  border-color: #00ffdd;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 255, 136, 0.3);
+}
+
+.accordion-btn:active {
+  transform: translateY(0);
+}
+
 .weapon-list {
   padding: 20px;
   background: rgba(0, 15, 15, 0.2);
@@ -162,12 +194,47 @@ body {
   font-weight: bold;
   text-shadow: 1px 1px 0 black, -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black;
   box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.category-header:hover {
+  background: rgba(48, 107, 184, 0.9);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+  transform: translateY(-1px);
+}
+
+.category-title {
+  flex: 1;
+}
+
+.category-arrow {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+  margin-left: 10px;
+}
+
+.weapon-category.collapsed .category-arrow {
+  transform: rotate(-90deg);
 }
 
 .weapon-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 8px;
+  overflow: hidden;
+  max-height: none;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.weapon-category.collapsed .weapon-grid {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
 }
 
 @media (min-width: 1200px) {
