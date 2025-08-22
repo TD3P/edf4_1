@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDF4.1 デバッグ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007acc;
+        }
+        .error { border-left-color: #e74c3c; }
+        .success { border-left-color: #27ae60; }
+        .warning { border-left-color: #f39c12; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow: auto; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 5px; cursor: pointer; }
+        .btn-primary { background: #007acc; color: white; }
+        .btn-test { background: #27ae60; color: white; }
+    </style>
+</head>
+<body>
+    <h1>🔧 EDF4.1 武器チェックリスト - デバッグ</h1>
+    
+    <div class="debug-box">
+        <h3>📁 ファイル存在チェック</h3>
+        <button class="btn-test" onclick="checkFiles()">ファイルをチェック</button>
+        <div id="fileCheck"></div>
+    </div>
+
+    <div class="debug-box">
+        <h3>📄 JSON データ読み込みテスト</h3>
+        <button class="btn-test" onclick="testJSON()">JSONを読み込み</button>
+        <div id="jsonTest"></div>
+    </div>
+
+    <div class="debug-box">
+        <h3>🎨 CSS 読み込みテスト</h3>
+        <button class="btn-test" onclick="testCSS()">CSSをチェック</button>
+        <div id="cssTest"></div>
+    </div>
+
+    <div class="debug-box">
+        <h3>⚙️ JavaScript エラーログ</h3>
+        <div id="errorLog"></div>
+    </div>
+
+    <div class="debug-box">
+        <h3>🚀 アプリケーション起動テスト</h3>
+        <button class="btn-primary" onclick="window.open('index.html', '_blank')">アプリを開く</button>
+        <button class="btn-test" onclick="testApp()">インライン テスト</button>
+        <div id="appTest"></div>
+    </div>
+
+    <script>
+        // エラーログを収集
+        const errorLog = document.getElementById('errorLog');
+        let errors = [];
+
+        window.addEventListener('error', (e) => {
+            errors.push({
+                message: e.message,
+                filename: e.filename,
+                lineno: e.lineno,
+                colno: e.colno
+            });
+            updateErrorLog();
+        });
+
+        function updateErrorLog() {
+            if (errors.length === 0) {
+                errorLog.innerHTML = '<p style="color: green;">✅ エラーはありません</p>';
+            } else {
+                errorLog.innerHTML = '<p style="color: red;">❌ エラーが発生しています:</p>' +
+                    errors.map(err => `<pre>${err.message} (${err.filename}:${err.lineno}:${err.colno})</pre>`).join('');
+            }
+        }
+
+        // ファイル存在チェック
+        async function checkFiles() {
+            const fileCheck = document.getElementById('fileCheck');
+            const files = ['styles.css', 'script.js', 'weaponData.json'];
+            let results = [];
+
+            for (const file of files) {
+                try {
+                    const response = await fetch(file, { method: 'HEAD' });
+                    results.push(`✅ ${file}: ${response.ok ? 'OK' : 'ERROR'} (${response.status})`);
+                } catch (error) {
+                    results.push(`❌ ${file}: ERROR - ${error.message}`);
+                }
+            }
+
+            fileCheck.innerHTML = '<pre>' + results.join('\n') + '</pre>';
+        }
+
+        // JSON読み込みテスト
+        async function testJSON() {
+            const jsonTest = document.getElementById('jsonTest');
+            
+            try {
+                const response = await fetch('weaponData.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                const stats = {};
+                let total = 0;
+                
+                Object.keys(data).forEach(classKey => {
+                    const classData = data[classKey];
+                    let classTotal = 0;
+                    Object.keys(classData.categories).forEach(cat => {
+                        classTotal += classData.categories[cat].length;
+                    });
+                    stats[classData.name] = classTotal;
+                    total += classTotal;
+                });
+                
+                jsonTest.innerHTML = `
+                    <div class="success">
+                        <p>✅ JSON読み込み成功!</p>
+                        <pre>${JSON.stringify(stats, null, 2)}</pre>
+                        <p><strong>総武器数: ${total}</strong></p>
+                    </div>
+                `;
+            } catch (error) {
+                jsonTest.innerHTML = `
+                    <div class="error">
+                        <p>❌ JSON読み込み失敗</p>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        // CSS読み込みテスト
+        function testCSS() {
+            const cssTest = document.getElementById('cssTest');
+            const links = document.getElementsByTagName('link');
+            let cssLinks = Array.from(links).filter(link => link.rel === 'stylesheet');
+            
+            if (cssLinks.length === 0) {
+                // 外部CSSをテスト
+                const testLink = document.createElement('link');
+                testLink.rel = 'stylesheet';
+                testLink.href = 'styles.css';
+                testLink.onload = () => {
+                    cssTest.innerHTML = '<div class="success">✅ styles.css 読み込み成功</div>';
+                };
+                testLink.onerror = () => {
+                    cssTest.innerHTML = '<div class="error">❌ styles.css 読み込み失敗</div>';
+                };
+                document.head.appendChild(testLink);
+            } else {
+                cssTest.innerHTML = '<div class="warning">⚠️ CSSは既に読み込まれています</div>';
+            }
+        }
+
+        // アプリケーションテスト
+        async function testApp() {
+            const appTest = document.getElementById('appTest');
+            appTest.innerHTML = '<p>🔄 テスト実行中...</p>';
+            
+            try {
+                // 1. JSONデータ読み込みテスト
+                const response = await fetch('weaponData.json');
+                const weaponData = await response.json();
+                
+                // 2. DOM要素作成テスト
+                const testDiv = document.createElement('div');
+                testDiv.style.cssText = `
+                    border: 2px solid #007acc;
+                    padding: 20px;
+                    margin: 10px 0;
+                    border-radius: 10px;
+                    background: white;
+                `;
+                
+                // 3. サンプル武器リスト作成
+                const rangerWeapons = weaponData.ranger.categories['アサルトライフル'].slice(0, 3);
+                testDiv.innerHTML = `
+                    <h4>🔫 ${weaponData.ranger.name} - アサルトライフル (サンプル)</h4>
+                    ${rangerWeapons.map(weapon => `
+                        <div style="padding: 10px; margin: 5px; background: #f8f9fa; border-radius: 5px; cursor: pointer;"
+                             onclick="this.style.background=this.style.background==='rgb(0, 184, 148)'?'#f8f9fa':'#00b894'; this.style.color=this.style.color==='white'?'black':'white';">
+                            ${weapon}
+                        </div>
+                    `).join('')}
+                `;
+                
+                appTest.innerHTML = '<div class="success">✅ アプリケーション動作テスト成功</div>';
+                appTest.appendChild(testDiv);
+                
+            } catch (error) {
+                appTest.innerHTML = `
+                    <div class="error">
+                        <p>❌ アプリケーションテスト失敗</p>
+                        <pre>${error.message}</pre>
+                    </div>
+                `;
+            }
+        }
+
+        // 初期化
+        updateErrorLog();
+        
+        // 5秒後に自動テスト実行
+        setTimeout(() => {
+            console.log('自動テスト開始...');
+            checkFiles();
+            setTimeout(testJSON, 1000);
+        }, 1000);
+    </script>
+</body>
+</html>

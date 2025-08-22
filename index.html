@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EDF4.1 武器チェックリスト</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🚀 EDF4.1 武器チェックリスト</h1>
+        <p>この戦いが終わったら結婚するんだ……なんてのは、縁起が悪いらしい。</p>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">
+          0 / 0 武器取得達成率 (0%)
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-number" id="totalWeapons">0</div>
+            <div class="stat-label">総武器数</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="collectedWeapons">0</div>
+            <div class="stat-label">取得済み</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-number" id="completionRate">0%</div>
+            <div class="stat-label">達成率</div>
+          </div>
+        </div>
+        <div class="class-tabs" id="classTabs">
+          <div class="class-tab active" data-class="all">🌟 すべて</div>
+          <div class="class-tab" data-class="ranger">🔫 レンジャー</div>
+          <div class="class-tab" data-class="wing-diver">
+            ✈️ ウイングダイバー
+          </div>
+          <div class="class-tab" data-class="air-raider">📡 エアレイダー</div>
+          <div class="class-tab" data-class="fencer">🛡️ フェンサー</div>
+        </div>
+      </div>
+
+      <div class="weapon-list" id="weaponList"></div>
+
+      <!-- トップに戻るボタン -->
+      <button class="scroll-to-top" id="scrollToTop" title="トップに戻る">
+        ↑
+      </button>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
