@@ -102,65 +102,17 @@ function loadWeaponDataJSONP() {
         debugLog("武器データの読み込み成功（JSONP）", Object.keys(weaponData));
         resolve(true);
       } else {
-        debugLog("JSONP読み込み失敗、フォールバックデータを使用");
-        loadFallbackData();
+        debugLog("JSONP読み込み失敗");
         resolve(false);
       }
     };
     script.onerror = () => {
-      debugLog("weaponData.jsが見つかりません、フォールバックデータを使用");
-      loadFallbackData();
+      debugLog("weaponData.jsが見つかりません");
       resolve(false);
     };
 
     document.head.appendChild(script);
   });
-}
-
-// フォールバックデータの読み込み
-function loadFallbackData() {
-  weaponData = {
-    ranger: {
-      name: "レンジャー",
-      categories: {
-        アサルトライフル: [
-          { name: "AF14", level: 0 },
-          { name: "AF15", level: 7 },
-          { name: "AF16", level: 12 },
-          { name: "AF17", level: 18 },
-          { name: "AF18", level: 23 },
-          { name: "AF19", level: 32 },
-          { name: "AF20", level: 46 },
-          { name: "AF99", level: 64 },
-          { name: "AF100", level: 75 },
-        ],
-        ショットガン: [
-          { name: "バッファローG1", level: 0 },
-          { name: "バッファローG2", level: 3 },
-          { name: "ガバナー25", level: 8 },
-          { name: "ワイドショット", level: 11 },
-        ],
-        スナイパーライフル: [
-          { name: "MMF40", level: 0 },
-          { name: "ストリンガー", level: 4 },
-          { name: "ライサンダー", level: 13 },
-          { name: "ノヴァバスター", level: 18 },
-        ],
-      },
-    },
-    "wing-diver": {
-      name: "ウイングダイバー",
-      categories: {
-        レーザーランス: [
-          { name: "レーザーランス", level: 0 },
-          { name: "レイピア", level: 12 },
-          { name: "グングニル", level: 92 },
-        ],
-      },
-    },
-  };
-
-  debugLog("フォールバックデータを使用");
 }
 
 // ローカルストレージから保存データを読み込み
@@ -204,9 +156,10 @@ function renderWeapons() {
   // データがない場合の処理
   if (!weaponData || Object.keys(weaponData).length === 0) {
     weaponListEl.innerHTML = `
-            <div style="text-align: center; padding: 50px; color: #666; background: white; border-radius: 10px; margin: 20px;">
-                <h3>🔄 武器データを読み込み中...</h3>
-                <p>データの読み込みに失敗した場合は、ページを再読み込みしてください。</p>
+            <div style="text-align: center; padding: 50px; color: #ff6666; background: rgba(0, 20, 20, 0.8); border-radius: 10px; margin: 20px; border: 2px solid #ff6666;">
+                <h3>⚠️ データが読み込めませんでした</h3>
+                <p>武器データファイル（weaponData.json または weaponData.js）が見つからないか、読み込みに失敗しました。</p>
+                <p>ファイルの配置を確認してページを再読み込みしてください。</p>
             </div>
         `;
     return;
@@ -222,11 +175,30 @@ function renderWeapons() {
     const classData = weaponData[classKey];
     if (!classData || !classData.categories) return;
 
+    // 兵科全体の進捗を計算
+    let classTotal = 0;
+    let classChecked = 0;
+    Object.keys(classData.categories).forEach((categoryKey) => {
+      const weapons = classData.categories[categoryKey];
+      if (Array.isArray(weapons)) {
+        weapons.forEach((weapon) => {
+          classTotal++;
+          const weaponName = typeof weapon === "string" ? weapon : weapon.name;
+          const weaponId = `${classKey}-${categoryKey}-${weaponName}`;
+          if (checkedWeapons.has(weaponId)) classChecked++;
+        });
+      }
+    });
+    const classPercentage = classTotal > 0 ? Math.round((classChecked / classTotal) * 100) : 0;
+
     // 兵科の大カテゴリヘッダー
     htmlContent += `
       <div class="class-category">
         <div class="class-header" onclick="toggleClassCategory(this)">
-          <span class="class-title">${classData.name}</span>
+          <span class="class-title">
+            ${classData.name}
+            <span class="class-progress">${classChecked}/${classTotal} (${classPercentage}%)</span>
+          </span>
           <span class="class-arrow">▼</span>
         </div>
         <div class="class-content">
@@ -236,11 +208,24 @@ function renderWeapons() {
       const weapons = classData.categories[categoryKey];
       if (!Array.isArray(weapons)) return;
 
+      // カテゴリ別進捗を計算
+      let categoryTotal = weapons.length;
+      let categoryChecked = 0;
+      weapons.forEach((weapon) => {
+        const weaponName = typeof weapon === "string" ? weapon : weapon.name;
+        const weaponId = `${classKey}-${categoryKey}-${weaponName}`;
+        if (checkedWeapons.has(weaponId)) categoryChecked++;
+      });
+      const categoryPercentage = categoryTotal > 0 ? Math.round((categoryChecked / categoryTotal) * 100) : 0;
+
       // 武器カテゴリヘッダー（小カテゴリ）
       htmlContent += `
         <div class="weapon-category">
           <div class="category-header" onclick="toggleCategory(this)">
-            <span class="category-title">${categoryKey}</span>
+            <span class="category-title">
+              ${categoryKey}
+              <span class="category-progress">${categoryChecked}/${categoryTotal} (${categoryPercentage}%)</span>
+            </span>
             <span class="category-arrow">▼</span>
           </div>
           <div class="weapon-grid">
