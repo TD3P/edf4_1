@@ -165,6 +165,25 @@ function renderWeapons() {
     return;
   }
 
+  // 現在の開閉状態を記録して再描画後に復元
+  const collapsedState = {
+    classes: new Set(),
+    categories: new Set(),
+  };
+
+  document.querySelectorAll('.class-category.collapsed').forEach((el) => {
+    if (el.dataset.class) collapsedState.classes.add(el.dataset.class);
+  });
+  document
+    .querySelectorAll('.weapon-category.collapsed')
+    .forEach((el) => {
+      if (el.dataset.class && el.dataset.category) {
+        collapsedState.categories.add(
+          `${el.dataset.class}||${el.dataset.category}`
+        );
+      }
+    });
+
   let totalCount = 0;
   let checkedCount = 0;
   let htmlContent = "";
@@ -193,7 +212,9 @@ function renderWeapons() {
 
     // 兵科の大カテゴリヘッダー
     htmlContent += `
-      <div class="class-category">
+      <div class="class-category${
+        collapsedState.classes.has(classKey) ? " collapsed" : ""
+      }" data-class="${classKey}">
         <div class="class-header" onclick="toggleClassCategory(this)">
           <span class="class-title">
             ${classData.name}
@@ -220,7 +241,11 @@ function renderWeapons() {
 
       // 武器カテゴリヘッダー（小カテゴリ）
       htmlContent += `
-        <div class="weapon-category">
+        <div class="weapon-category${
+          collapsedState.categories.has(`${classKey}||${categoryKey}`)
+            ? " collapsed"
+            : ""
+        }" data-class="${classKey}" data-category="${categoryKey}">
           <div class="category-header" onclick="toggleCategory(this)">
             <span class="category-title">
               ${categoryKey}
@@ -248,7 +273,7 @@ function renderWeapons() {
 
         htmlContent += `
           <div class="weapon-item ${isChecked ? "checked" : ""}" 
-               onclick="toggleWeapon('${weaponId}', this)"
+               onclick="toggleWeapon('${weaponId}')"
                data-weapon-id="${weaponId}">
             <div class="weapon-name">${weaponName} <span class="weapon-level">Lv${weaponLevel}</span></div>
           </div>
@@ -287,19 +312,21 @@ function renderWeapons() {
 }
 
 // 武器の取得状態を切り替え
-function toggleWeapon(weaponId, element) {
+function toggleWeapon(weaponId) {
   debugLog("武器切り替え", weaponId);
 
   if (checkedWeapons.has(weaponId)) {
     checkedWeapons.delete(weaponId);
-    element.classList.remove("checked");
   } else {
     checkedWeapons.add(weaponId);
-    element.classList.add("checked");
   }
 
   saveData();
-  updateStats(); // 統計更新（フィルタ表示とグローバル進捗両方）
+
+  // スクロール位置を保持しつつ再描画して進捗表示を更新
+  const scrollY = window.scrollY;
+  renderWeapons();
+  window.scrollTo(0, scrollY);
 }
 
 // 統計を更新（フィルタ表示用）
